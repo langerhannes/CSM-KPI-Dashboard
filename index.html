@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSM KPI Dashboard — LfD Bayern</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F6F2;
+    --surface: #FFFFFF;
+    --surface2: #F0EEE9;
+    --border: rgba(0,0,0,0.09);
+    --border2: rgba(0,0,0,0.14);
+    --text: #1A1916;
+    --text2: #6B6860;
+    --text3: #9E9C97;
+    --green: #1D9E75;
+    --green-bg: #E1F5EE;
+    --green-text: #085041;
+    --amber: #EF9F27;
+    --amber-bg: #FAEEDA;
+    --amber-text: #633806;
+    --red: #E24B4A;
+    --red-bg: #FCEBEB;
+    --red-text: #791F1F;
+    --blue: #378ADD;
+    --blue-bg: #E6F1FB;
+    --blue-text: #185FA5;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--text);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-mark span {
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+
+  .header-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .header-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 1px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Main content */
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  /* Summary cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  .summary-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  }
+
+  .card-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+
+  .card-value {
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: -1px;
+  }
+
+  .card-meta {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 6px;
+  }
+
+  /* Section */
+  .section-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* Column header */
+  .col-header {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 72px 72px 20px 20px;
+    gap: 6px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 500;
+    margin-bottom: 4px;
+    letter-spacing: 0.03em;
+  }
+
+  /* Category badge */
+  .cat-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 16px 0 6px;
+  }
+
+  .cat-step {
+    opacity: 0.5;
+    font-weight: 400;
+  }
+
+  /* KPI row */
+  .krow {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 72px 72px 20px 20px;
+    gap: 6px;
+    align-items: center;
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.12s, border-color 0.12s;
+    margin-bottom: 2px;
+    background: var(--surface);
+  }
+
+  .krow:hover {
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .krow.on {
+    background: var(--surface2);
+    border-color: var(--border2);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .kpi-name {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  .kpi-val {
+    text-align: right;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .kpi-tgt {
+    text-align: right;
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .kpi-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chevron {
+    font-size: 16px;
+    color: var(--text3);
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .chevron.on {
+    transform: rotate(180deg);
+  }
+
+  /* Detail panel */
+  .kdet {
+    display: none;
+    border: 1px solid var(--border2);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+
+  .kdet.on {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .d-red {
+    padding: 14px 16px;
+    background: var(--red-bg);
+    border-right: 1px solid rgba(226,75,74,0.15);
+  }
+
+  .d-grn {
+    padding: 14px 16px;
+    background: var(--green-bg);
+  }
+
+  .d-title {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .d-cause {
+    font-size: 11.5px;
+    color: var(--red-text);
+    opacity: 0.8;
+    font-style: italic;
+    margin-bottom: 8px;
+    line-height: 1.55;
+  }
+
+  .d-li {
+    font-size: 11.5px;
+    color: var(--text2);
+    line-height: 1.55;
+    margin-bottom: 4px;
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .d-li::before {
+    content: "–";
+    position: absolute;
+    left: 0;
+    opacity: 0.4;
+  }
+
+  .d-red .d-li { color: var(--red-text); }
+  .d-grn .d-li { color: var(--green-text); }
+
+  /* Status indicator accent */
+  .krow[data-st="r"] { border-left: 3px solid var(--red); }
+  .krow[data-st="y"] { border-left: 3px solid var(--amber); }
+  .krow[data-st="g"] { border-left: 3px solid var(--green); }
+  .krow[data-st="b"] { border-left: 3px solid var(--blue); }
+
+  .krow.on[data-st="r"],
+  .krow[data-st="r"]:hover { background: rgba(226,75,74,0.04); }
+  .krow.on[data-st="y"],
+  .krow[data-st="y"]:hover { background: rgba(239,159,39,0.05); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 11px;
+    color: var(--text3);
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .legend { display: none; }
+    .kdet.on { grid-template-columns: 1fr; }
+    .d-red { border-right: none; border-bottom: 1px solid rgba(226,75,74,0.15); }
+    .main { padding: 20px 16px 48px; }
+    .header { padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo-mark"><span>CSM</span></div>
+    <div>
+      <div class="header-title">KPI Dashboard</div>
+      <div class="header-sub">Beispieldaten · LfD Bayern · Klicke eine Zeile für Details</div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="dot" style="background:#1D9E75"></span>On Track</div>
+    <div class="legend-item"><span class="dot" style="background:#EF9F27"></span>Achtung</div>
+    <div class="legend-item"><span class="dot" style="background:#E24B4A"></span>Handeln</div>
+    <div class="legend-item"><span class="dot" style="background:#378ADD"></span>Info</div>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="card-label"><span class="dot" style="background:#1D9E75"></span>Health Score</div>
+      <div class="card-value">72</div>
+      <div class="card-meta">Ziel: ≥70 · Trend ↑</div>
+    </div>
+    <div class="summary-card">
+      <div class="card-label"><span class="dot" style="background:#EF9F27"></span>Adoptionsrate</div>
+      <div class="card-value">64%</div>
+      <div class="card-meta">Ziel: ≥80% · Trend ↑</div>
+    </div>
+    <div class="summary-card">
+      <div class="card-label"><span class="dot" style="background:#1D9E75"></span>Renewal-Chance</div>
+      <div class="card-value">88%</div>
+      <div class="card-meta">Ziel: ≥85% · Trend ↑</div>
+    </div>
+    <div class="summary-card">
+      <div class="card-label"><span class="dot" style="background:#1D9E75"></span>NPS</div>
+      <div class="card-value">+34</div>
+      <div class="card-meta">Ziel: ≥+30 · Trend →</div>
+    </div>
+  </div>
+
+  <div class="col-header">
+    <span>KPI</span>
+    <span style="text-align:right">Aktuell</span>
+    <span style="text-align:right">Ziel</span>
+    <span></span><span></span>
+  </div>
+
+  <div id="db"></div>
+
+</main>
+
+<footer class="footer">
+  CSM KPI Dashboard · Beispieldaten · LfD Bayern
+</footer>
+
+<script>
+const cats=[
+  {id:'ad',label:'Adoption',step:'11',bg:'#E1F5EE',tc:'#085041'},
+  {id:'he',label:'Health & Zufriedenheit',step:'11, 13',bg:'#EEEDFE',tc:'#3C3489'},
+  {id:'re',label:'Retention',step:'9',bg:'#FAEEDA',tc:'#633806'},
+  {id:'ex',label:'Expansion',step:'7, 8',bg:'#E6F1FB',tc:'#185FA5'},
+  {id:'en',label:'Engagement',step:'7, 12',bg:'#FAECE7',tc:'#993C1D'},
+  {id:'op',label:'Operativ',step:'10, 13',bg:'#F1EFE8',tc:'#444441'},
+];
+
+const dc={g:'#1D9E75',y:'#EF9F27',r:'#E24B4A',b:'#378ADD'};
+
+const kpis=[
+  {id:'a1',cat:'ad',name:'Adoptionsrate',sub:'MAU / Gesamt-Lizenzen',val:'64%',tgt:'≥80%',st:'y',
+   cause:'Nutzer wurden unzureichend ongeboardet oder sehen keinen persönlichen Mehrwert in der Lösung.',
+   red:['Adoption-Workshop mit Key-Usern einplanen (halber Tag reicht)','Rollenspezifisches Training anbieten — z.B. separate Session für Sachbearbeiter','Nutzungsbarrieren per kurzem User-Interview identifizieren','Enablement-Materialien aktualisieren und aktiv verteilen'],
+   grn:['Als Haupt-Argument im nächsten Upsell-Gespräch (Schritt 8) einsetzen','Adoption-Champions intern identifizieren und als Multiplikatoren aktivieren','Im QBR als ROI-Beweis gegenüber C-Level präsentieren']},
+  {id:'a2',cat:'ad',name:'Feature-Tiefe',sub:'Genutzte Core-Features / Gesamt',val:'45%',tgt:'≥60%',st:'r',
+   cause:'Nutzer beschränken sich auf Grundfunktionen — fortgeschrittene Features sind unbekannt oder wurden im Onboarding nicht vermittelt.',
+   red:['Monatliche Feature-Spotlight-Sessions einplanen (1 h)','In-App-Walkthroughs oder Tooltips über Produkt-Feedback anfragen','Use-Case-Bibliothek gemeinsam mit dem Kunden aufbauen'],
+   grn:['Hohe Feature-Tiefe = stärkere Wechselbarriere — im Renewal-Gespräch nutzen','Neue Features als Beta-Tester anbieten — stärkt strategische Partnerschaft']},
+  {id:'a3',cat:'ad',name:'Time-to-Value',sub:'Tage bis erster Produktivoutput',val:'18 T',tgt:'<30 T',st:'g',
+   cause:'Verlängert sich durch unklare Onboarding-Ziele, fehlende Ressourcen beim Kunden oder technische Integrationsprobleme.',
+   red:['Onboarding-Milestones schärfen: klares Definition-of-Done für ersten Produktiv-Use-Case','Technische Blocker eskalieren (Schritt 13)','Dedizierte Ansprechpartner beim Kunden einfordern'],
+   grn:['Schneller TtV = starkes Argument im Referenzgespräch und für Upsell','Im QBR als Effizienznachweis präsentieren']},
+  {id:'h1',cat:'he',name:'Health Score',sub:'Composite-Score 0–100',val:'72',tgt:'≥70',st:'g',
+   cause:'Setzt sich aus Adoption, Support-Last, Engagement und Feedback zusammen — sinkt wenn mehrere KPIs gleichzeitig rot sind.',
+   red:['Schwächsten Sub-Score identifizieren und gezielt adressieren','Wenn Score unter 60: sofortiger Eskalations-Call (Schritt 13)','90-Tage-Aktionsplan mit Kunde gemeinsam erstellen'],
+   grn:['Grüner Score = optimaler Zeitpunkt für Expansion-Discovery (Schritt 7)','Im Renewal als Stabilitätsbeweis einsetzen']},
+  {id:'h2',cat:'he',name:'CSAT',sub:'Kundenzufriedenheit 1–5 Skala',val:'4.1',tgt:'≥4.0',st:'g',
+   cause:'Sinkt durch langsame Reaktionszeiten, ungelöste Eskalationen oder mangelnde Proaktivität des CSM.',
+   red:['Feedback-Anlass identifizieren: welche Interaktion hat den Score gedrückt','SLA-Einhaltung intern prüfen — ggf. über Schritt 13 (Eskalation) einfordern'],
+   grn:['CSAT-Verlauf im Jahresreview dokumentieren','Als Benchmark gegenüber Wettbewerb im Renewal-Gespräch einsetzen']},
+  {id:'r1',cat:'re',name:'Renewal-Wahrscheinlichkeit',sub:'CSM-Einschätzung 0–100%',val:'88%',tgt:'≥85%',st:'g',
+   cause:'Sinkt durch niedrigen Health Score, ungelöste Eskalationen oder fehlendes Executive-Engagement.',
+   red:['90-Tage-Renewal-Plan aktivieren: interne Abstimmung AM + CSM','Risikogespräch mit Sponsor einleiten','Executive Sponsor von T-Systems-Seite aktiv einbinden'],
+   grn:['Renewal früh einleiten — grüner Score gibt Verhandlungsstärke','Multi-Year-Deal oder Expansion in das Renewal-Gespräch integrieren']},
+  {id:'r2',cat:'re',name:'Churn-Risiko-Indikatoren',sub:'Anzahl aktiver Warnsignale',val:'2',tgt:'0',st:'r',
+   cause:'Typische Signale: sinkende Logins, Sponsor-Wechsel, Zahlungsverzug, Konkurrenzgespräche, ungelöste Eskalationen.',
+   red:['Jeden Indikator einzeln dokumentieren und Owner + Deadline zuweisen','Wöchentliches internes Monitoring bis Risiko auf null ist','Bei Sponsor-Wechsel: sofortiger Beziehungsaufbau mit neuem Kontakt — höchste Priorität'],
+   grn:['Risiko auf null: im Governance-Report als stabil markieren','Stabiler Kunde ist bereit für Expansion — proaktiv Discovery einleiten']},
+  {id:'r3',cat:'re',name:'Days to Renewal',sub:'Verbleibende Tage bis Vertragsende',val:'67 T',tgt:'Trigger <90 T',st:'y',
+   cause:'Rein zeitlicher Indikator. Je weniger Zeit, desto weniger Spielraum für offene Themen.',
+   red:['Sofort Renewal-Kick-off mit AM starten','Success-Story-Dokument mit messbaren Ergebnissen aufbereiten','Alle Health-Score-Risiken vor Verhandlungsbeginn schließen'],
+   grn:['Frühes Renewal mit Incentive (z.B. Preisstabilität) als Option einbringen','Multi-Year-Gespräch öffnen wenn Health grün und Expansion-Potential vorhanden']},
+  {id:'e1',cat:'ex',name:'Upsell-Potential',sub:'Qualifizierte Opportunities in €',val:'180k €',tgt:'Laufende Pipeline',st:'b',
+   cause:'Kein Potential entsteht wenn CSM nicht tief in Kundenprozesse eingebunden ist oder Stakeholder-Abdeckung zu gering ist.',
+   red:['Discovery-Gespräch einplanen (Schritt 7)','Stakeholder-Map erweitern — neue Abteilungen und Use Cases identifizieren','Opportunity gemeinsam mit AM qualifizieren und übergeben'],
+   grn:['Pipeline schnell an AM übergeben — Momentum nutzen bevor Entscheider wechselt','Schwesterbehörden als Cross-Sell-Potential prüfen']},
+  {id:'e2',cat:'ex',name:'Expansionsrate',sub:'Umsatzwachstum Bestandskunden YoY',val:'+12%',tgt:'≥+10%',st:'g',
+   cause:'Keine Expansion wenn Adoption stagniert, Kundenzufriedenheit sinkt oder CSM-Engagement nachlässt.',
+   red:['Adoption-KPIs prüfen — keine nachhaltige Expansion ohne stabile Nutzungsbasis','ROI quantifizieren und als Argument für Erweiterungsgespräch vorbereiten'],
+   grn:['Expansionsrate im QBR mit Kunde teilen — zeigt gemeinsames Wachstum','Als Nachweis für Modell-Wirksamkeit im Governance-Report nutzen']},
+  {id:'n1',cat:'en',name:'Executive Engagement',sub:'QBR-Teilnahme C-Level (%)',val:'67%',tgt:'≥80%',st:'y',
+   cause:'QBR-Format nicht auf C-Level zugeschnitten, Mehrwert nicht klar kommuniziert oder falscher Einladungsprozess.',
+   red:['QBR-Format überdenken: C-Level braucht strategische Inhalte, keine Feature-Listen','Executive Sponsor von T-Systems-Seite aktiv einbinden','Persönliche Einladung durch AM statt generische Kalender-Einladung'],
+   grn:['Executive als internen Champion für Renewal und Expansion aktivieren','Gemeinsame Referenz oder Case Study anfragen']},
+  {id:'n2',cat:'en',name:'Stakeholder-Abdeckung',sub:'Anzahl aktiver Kontakte beim Kunden',val:'4',tgt:'≥5',st:'y',
+   cause:'Beziehung hängt an einer Person — wenn dieser Kontakt geht, droht Churn.',
+   red:['Stakeholder-Map erstellen: wer nutzt / entscheidet / beeinflusst','Aktiv Kontakte in neuen Abteilungen aufbauen','Stakeholder-Wechsel sofort als Churn-Risiko-Indikator markieren'],
+   grn:['Breite Abdeckung = Resilienz bei Personalwechseln','Multi-Stakeholder-Beziehung öffnet neue Use Cases und Expansionspotenziale']},
+  {id:'o1',cat:'op',name:'Offene Eskalationen',sub:'Anzahl ungelöster kritischer Themen',val:'2',tgt:'0',st:'r',
+   cause:'Ungelöste Produktprobleme, SLA-Verletzungen oder Rückstände aus der Delivery-Phase.',
+   red:['Für jede Eskalation: Owner + Deadline definieren (Schritt 13)','Täglich Kunden-Update senden — Schweigen ist der größte Fehler','Intern PDM und PS einbinden, AM informieren'],
+   grn:['Jede geschlossene Eskalation als Vertrauensmoment nutzen','Muster analysieren: wiederkehrende Themen → Produkt-Feedback einreichen']},
+  {id:'o2',cat:'op',name:'Feedback-Closure-Rate',sub:'Beantwortete Produktfeedbacks / Eingereichte',val:'60%',tgt:'≥70%',st:'y',
+   cause:'PDM priorisiert Kundenfeedback zu niedrig, oder CSM verfolgt eingereichte Feedbacks nicht aktiv nach.',
+   red:['Feedback-Status im wöchentlichen CSM-PDM-Sync prüfen','Kunden auch bei abgelehnten Feedbacks informieren — Transparenz stärkt Vertrauen'],
+   grn:['Hohe Rate zeigt dem Kunden: sein Input bewegt etwas — stärkt NPS und Loyalität','Als Differenzierungsmerkmal im Renewal-Gespräch nennen']},
+];
+
+function tog(id){
+  const row=document.getElementById('krow-'+id);
+  const det=document.getElementById('kdet-'+id);
+  const chv=document.getElementById('kchv-'+id);
+  const isOn=det.classList.contains('on');
+  document.querySelectorAll('.kdet.on').forEach(d=>d.classList.remove('on'));
+  document.querySelectorAll('.krow.on').forEach(r=>r.classList.remove('on'));
+  document.querySelectorAll('.chevron.on').forEach(c=>c.classList.remove('on'));
+  if(!isOn){det.classList.add('on');row.classList.add('on');chv.classList.add('on');}
+}
+
+let h='';
+cats.forEach(cat=>{
+  const ks=kpis.filter(k=>k.cat===cat.id);
+  h+=`<div class="cat-badge" style="background:${cat.bg};color:${cat.tc}">${cat.label}<span class="cat-step">Schritt ${cat.step}</span></div>`;
+  ks.forEach(k=>{
+    const ra=k.red.map(a=>`<div class="d-li">${a}</div>`).join('');
+    const ga=k.grn.map(a=>`<div class="d-li">${a}</div>`).join('');
+    h+=`
+    <div id="krow-${k.id}" class="krow" data-st="${k.st}" onclick="tog('${k.id}')">
+      <div>
+        <div class="kpi-name">${k.name}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      </div>
+      <div class="kpi-val">${k.val}</div>
+      <div class="kpi-tgt">${k.tgt}</div>
+      <div class="kpi-status"><span class="dot" style="background:${dc[k.st]}"></span></div>
+      <div style="display:flex;align-items:center;justify-content:center">
+        <span id="kchv-${k.id}" class="chevron">&#8964;</span>
+      </div>
+    </div>
+    <div id="kdet-${k.id}" class="kdet">
+      <div class="d-red">
+        <div class="d-title" style="color:#A32D2D">&#9651; Wenn ROT — Ursache &amp; Maßnahmen</div>
+        <div class="d-cause">${k.cause}</div>
+        ${ra}
+      </div>
+      <div class="d-grn">
+        <div class="d-title" style="color:#0F6E56">&#8599; Wenn GRÜN — Nutzen &amp; Hebel</div>
+        ${ga}
+      </div>
+    </div>`;
+  });
+});
+document.getElementById('db').innerHTML=h;
+</script>
+</body>
+</html>
